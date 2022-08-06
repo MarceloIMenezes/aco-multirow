@@ -1,6 +1,7 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
+#include "utils.hpp"
 #include <vector>
 #include <string>
 
@@ -16,9 +17,12 @@ private:
 
 public:
 
-    Graph(size_t nVertices);
+    Graph(std::string instanceName, size_t nVertices);
     ~Graph();
 
+    Graph readFile(std::istream& file, std::string instanceName);
+    void setComprimento(size_t id, size_t comprimento);
+    void setPesos(size_t id_i, size_t id_j, size_t peso);
 };
 
 
