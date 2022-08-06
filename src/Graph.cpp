@@ -54,3 +54,4 @@ void Graph::setComprimento(size_t id, size_t comprimento) {
 void Graph::setPesos(size_t id_i, size_t id_j, size_t peso) {
     this->pesos[id_i][id_j] = peso;
 }
+
