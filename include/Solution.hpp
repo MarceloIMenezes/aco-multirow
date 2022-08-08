@@ -12,13 +12,14 @@ private:
     
     float cost;
     size_t nRows;
-    matrix_t solucao;
 
 public:
 
     Solution(size_t nRows);
     ~Solution();
 
+    float getCost();
+    matrix_t solucao;
     float distanciaHorizontal(size_t id, size_t row, std::vector<size_t>& comprimentos);
     void recalcularCusto(matrix_t& pesos, std::vector<size_t>& comprimentos);
 
