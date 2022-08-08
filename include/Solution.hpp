@@ -4,7 +4,8 @@
 #include <vector>
 #include <cmath>
 
-using matrix_t = std::vector<std::vector<size_t>>;
+using matrixid_t = std::vector<std::vector<size_t>>;
+using matrix_t = std::vector<std::vector<float>>;
 
 class Solution
 {
@@ -16,10 +17,9 @@ private:
 public:
 
     Solution(size_t nRows);
-    ~Solution();
 
     float getCost();
-    matrix_t solucao;
+    matrixid_t solucao;
     float distanciaHorizontal(size_t id, size_t row, std::vector<size_t>& comprimentos);
     void recalcularCusto(matrix_t& pesos, std::vector<size_t>& comprimentos);
 

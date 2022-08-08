@@ -35,7 +35,6 @@ private:
 public:
 
     Graph(std::string instanceName, size_t nVertices);
-    ~Graph();
 
     Graph readFile(std::istream& file, std::string instanceName);
     void setComprimento(size_t id, size_t comprimento);
