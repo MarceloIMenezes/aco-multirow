@@ -6,6 +6,10 @@ Solution::Solution(size_t nRows) {
     this->solucao.reserve(nRows);
 }
 
+float Solution::getCost() {
+    return this->cost;
+}
+
 float Solution::distanciaHorizontal(size_t id, size_t row, std::vector<size_t>& comprimentos) {
     float distancia = comprimentos.at(id) / 2;
     for (size_t i=0; i<this->solucao.at(row).size(); ++i) {

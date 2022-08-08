@@ -90,7 +90,7 @@ bool Graph::presenteNaCol(size_t id, size_t col, Solution& s) {
     return false;
 }
 
-float Graph::influenciaSobreSol(size_t id, size_t col, std::vector<Solution&>& s) {
+float Graph::influenciaSobreSol(size_t id, size_t col, std::vector<Solution>& s) {
     float influencia = 0;
     for (size_t i=0; i<s.size(); i++) {
         influencia += this->presenteNaCol(id, col, s.at(i)) ? 1/s.at(i).getCost() : 0;
@@ -98,7 +98,7 @@ float Graph::influenciaSobreSol(size_t id, size_t col, std::vector<Solution&>& s
     return influencia;
 }
 
-void Graph::atualizaFeromonios(std::vector<Solution&>& s) {
+void Graph::atualizaFeromonios(std::vector<Solution>& s) {
     for (size_t id=0; id<this->vertices.size(); id++) {
         for (size_t col=0; col<this->vertices.size(); col++) {
             this->feromonios[id][col] = this->evaporacao(id, col) + this->influenciaSobreSol(id, col, s);
@@ -106,33 +106,73 @@ void Graph::atualizaFeromonios(std::vector<Solution&>& s) {
     }
 }
 
+size_t Graph::getFacilidade(std::vector<prob_fac>& prob) {
+    double rng = (double) (rand() % 1000) / 1000;
+    float aux = 0;
+    float prob_sum = 0;
+    for (size_t i=0; i<prob.size(); i++) {
+        prob_sum += prob.at(i).prob;
+    }
+
+    for (size_t i=0; i<prob.size()-1; i++) {
+        aux += prob.at(i).prob / prob_sum;
+        if (rng <= aux) {
+            return i;
+        }
+    }
+    return prob.size()-1;
+}
+
 Solution Graph::aco() {
     size_t nRows = 2;
     size_t nAnts = this->vertices.size();
-    std::vector<Solution*> s;
+    std::vector<Solution> s;
+    Solution best = Solution(nRows);
     s.reserve(nAnts);
-    for (size_t i=0; i<nAnts; i++) {
-        s.at(i) = new Solution(nRows);
-    }
     this->initializeInfluencia();
 
     size_t it = 0;
-    size_t nIt = 1;
+    size_t nIt = 200;
     while (it < nIt) {
 
         for (size_t ant=0; ant<nAnts; ant++) {
+
+            s.at(ant) = Solution(nRows);
 
             std::vector<size_t> facilidades = this->vertices;
             std::vector<size_t> colunas;
             colunas.resize(nRows, 0);
 
+            std::vector<prob_fac> prob;
+            prob.resize(nRows, prob_fac{-1,0});
+
             while (!facilidades.empty()) {
+                
+                for (size_t linha = 0; linha < nRows; linha++) {
+                    for (size_t id_f = 0; id_f < this->vertices.size(); id_f++) {
+                        float influencia = colunas.at(linha) == 0 ? 1/this->influencia.at(id_f) : 1/(this->influencia.at(id_f) + this->pesos[id_f][s.at(ant).solucao[linha][colunas.at(linha)-1]]);
+                        size_t p = this->getProbabilidade(id_f, colunas.at(linha), influencia);
+                        if (p > prob.at(linha).prob) {
+                            prob.at(linha).id = id_f;
+                            prob.at(linha).prob = p;
+                        }
+                    }
+                }
+
+                size_t linha_insert = this->getFacilidade(prob);
+                s.at(ant).solucao[linha_insert][colunas.at(linha_insert)] = prob.at(linha_insert).id;
+                facilidades.erase(facilidades.begin() + prob.at(linha_insert).id);
 
             }
-
+            s.at(ant).recalcularCusto(this->pesos, this->comprimentos);
+            if (best.getCost() == 0 || best.getCost() > s.at(ant).getCost()) {
+                best = s.at(ant);
+            }
         }
+        this->atualizaFeromonios(s);
 
         it++;
     }
 
+    return best;
 }

@@ -19,14 +19,19 @@ private:
     matrix_t feromonios;
     std::vector<size_t> influencia;
 
+    struct prob_fac {
+        float prob;
+        size_t id;
+    };
+
     void initializeInfluencia();
 
     bool presenteNaCol(size_t id, size_t col, Solution& s);
     float getProbabilidade(size_t id_i, size_t coluna, float influencia);
     float evaporacao(size_t id_i, size_t coluna);
-    float influenciaSobreSol(size_t id, size_t col, std::vector<Solution&>& s);
-    void atualizaFeromonios(std::vector<Solution&>& s);
-
+    float influenciaSobreSol(size_t id, size_t col, std::vector<Solution>& s);
+    void atualizaFeromonios(std::vector<Solution>& s);
+    size_t getFacilidade(std::vector<prob_fac>& prob);
 public:
 
     Graph(std::string instanceName, size_t nVertices);
