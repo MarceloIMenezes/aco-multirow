@@ -7,10 +7,14 @@ Graph::Graph(std::string instanceName, size_t nVertices) {
 
     this->pesos.reserve(nVertices);
     this->feromonios.reserve(nVertices);
-    this->influencia.reserve(nVertices);
+    this->influencia.resize(nVertices, 1);
     for (size_t i=0; i<nVertices; i++) {
-        this->pesos.at(i).resize(nVertices);
-        this->feromonios.at(i).resize(nVertices, 1);
+        std::vector<float> aux;
+        aux.resize(nVertices);
+        this->pesos.push_back(aux);
+        aux.clear();
+        aux.resize(nVertices, 1);
+        this->feromonios.push_back(aux);
     }
 
     this->comprimentos.resize(nVertices);
@@ -19,11 +23,15 @@ Graph::Graph(std::string instanceName, size_t nVertices) {
 void Graph::initializeInfluencia() {
     for (size_t i=0; i<this->vertices.size(); ++i) {
         size_t w = 0;
-        for (size_t j=0; i<this->vertices.size(); ++j) {
+        for (size_t j=0; j<this->vertices.size(); ++j) {
             w += this->pesos[i][j];
         }
         this->influencia.at(i) = w;
     }
+}
+
+void Graph::setVertice(size_t id, size_t new_id) {
+    this->vertices.at(id) = new_id;
 }
 
 Graph Graph::readFile(std::istream& file, std::string instanceName)
@@ -34,7 +42,7 @@ Graph Graph::readFile(std::istream& file, std::string instanceName)
     getline(file, line);
     nVertices = stol(line);
 
-    Graph g(this->instanceName, nVertices);
+    Graph g(instanceName, nVertices);
 
     std::vector<std::string> lb;
 
@@ -42,6 +50,7 @@ Graph Graph::readFile(std::istream& file, std::string instanceName)
     lb = split(line, ' ');
 
     for (size_t i=0; i<nVertices; ++i) {
+        g.setVertice(i, i);
         g.setComprimento(i, stol(lb.at(i)));
     }
     
@@ -129,14 +138,18 @@ Solution Graph::aco() {
     std::vector<Solution> s;
     Solution best = Solution(nRows);
     s.reserve(nAnts);
+
+    for (size_t i=0; i<nAnts; i++) {
+        s.push_back(Solution(nRows));
+    }
     this->initializeInfluencia();
 
     size_t it = 0;
-    size_t nIt = 200;
+    size_t nIt = 20;
     while (it < nIt) {
-
+        std::cout << "\nit: " << it;
         for (size_t ant=0; ant<nAnts; ant++) {
-
+            std::cout << "\n\tant: " << ant;
             s.at(ant) = Solution(nRows);
 
             std::vector<size_t> facilidades = this->vertices;
@@ -144,24 +157,36 @@ Solution Graph::aco() {
             colunas.resize(nRows, 0);
 
             std::vector<prob_fac> prob;
-            prob.resize(nRows, prob_fac{-1,0});
 
             while (!facilidades.empty()) {
+                prob.clear();
+                prob.resize(nRows, prob_fac{-1,0});
                 
                 for (size_t linha = 0; linha < nRows; linha++) {
-                    for (size_t id_f = 0; id_f < this->vertices.size(); id_f++) {
-                        float influencia = colunas.at(linha) == 0 ? 1/this->influencia.at(id_f) : 1/(this->influencia.at(id_f) + this->pesos[id_f][s.at(ant).solucao[linha][colunas.at(linha)-1]]);
-                        size_t p = this->getProbabilidade(id_f, colunas.at(linha), influencia);
+                    for (size_t id_f = 0; id_f < facilidades.size(); id_f++) {
+                        float influencia_aux;
+                        if (colunas.at(linha) == 0) {
+                            influencia_aux = (float) 1/ ((float) this->influencia.at(facilidades.at(id_f)));
+                        } else {
+                            influencia_aux = 1/(this->influencia.at(facilidades.at(id_f)) + this->pesos[facilidades.at(id_f)][s.at(ant).solucao[linha][colunas.at(linha)-1]]);
+                        }
+                        float p = this->getProbabilidade(facilidades.at(id_f), colunas.at(linha), influencia_aux);
                         if (p > prob.at(linha).prob) {
-                            prob.at(linha).id = id_f;
+                            prob.at(linha).id = facilidades.at(id_f);
                             prob.at(linha).prob = p;
                         }
                     }
                 }
 
                 size_t linha_insert = this->getFacilidade(prob);
-                s.at(ant).solucao[linha_insert][colunas.at(linha_insert)] = prob.at(linha_insert).id;
-                facilidades.erase(facilidades.begin() + prob.at(linha_insert).id);
+                s.at(ant).solucao[linha_insert].push_back(prob.at(linha_insert).id);
+                colunas.at(linha_insert) += 1;
+                for (size_t iter = 0; iter<facilidades.size(); ++iter) {
+                    if (facilidades.at(iter) == prob.at(linha_insert).id) {
+                        facilidades.erase(facilidades.begin() + iter);
+                        break;
+                    }
+                }
 
             }
             s.at(ant).recalcularCusto(this->pesos, this->comprimentos);

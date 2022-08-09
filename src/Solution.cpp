@@ -4,6 +4,10 @@ Solution::Solution(size_t nRows) {
     this->nRows = nRows;
     this->cost = 0;
     this->solucao.reserve(nRows);
+    for (size_t i=0; i<nRows; i++) {
+        std::vector<size_t> aux;
+        this->solucao.push_back(aux);
+    }
 }
 
 float Solution::getCost() {
