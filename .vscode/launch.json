@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/debug",
-            "args": ["${workspaceFolder}/data/sfmrflp_instances/table_09/Am12a.txt", "saida.txt"],
+            "args": ["${workspaceFolder}/data/sfmrflp_instances/table_09/S9.txt", "saida.txt", "102697"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
