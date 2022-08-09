@@ -1,1 +1,6 @@
 data/
+solution/
+*.txt
+debug
+main
+.vscode/
