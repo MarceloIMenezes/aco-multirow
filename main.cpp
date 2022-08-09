@@ -35,9 +35,15 @@ int main(int argc, char const *argv[])
 
     OPEN_FILE(input_file, argv[1]);
 
+    std::string instanceName = argv[1];
+    size_t it = instanceName.find("data/sfmrflp_instances/table_");
+    instanceName.erase(0, it + 32);
+    it = instanceName.find(".txt");
+    instanceName.erase(it, 4);
+
     OPEN_FILE(outpt_file, argv[2]);
 
-    Graph g = Graph::readFile(input_file, "joseph");
+    Graph g = Graph::readFile(input_file, instanceName);
 
     long seed = time(NULL) * time(NULL) / rand();
     
@@ -50,6 +56,8 @@ int main(int argc, char const *argv[])
     std::cout << "\nseed: " << seed << "\n";
     Solution s = g.aco();
     std::cout << "\n\ncusto: " << s.getCost() << "\n";
+
+    g.outFile(outpt_file, s, seed);
 
     return 0;
 }

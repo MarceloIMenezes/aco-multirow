@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 using matrixid_t = std::vector<std::vector<size_t>>;
 using matrix_t = std::vector<std::vector<float>>;
@@ -22,7 +23,7 @@ public:
     matrixid_t solucao;
     float distanciaHorizontal(size_t id, size_t row, std::vector<size_t>& comprimentos);
     void recalcularCusto(matrix_t& pesos, std::vector<size_t>& comprimentos);
-
+    void triangSup(matrix_t& pesos, std::vector<size_t>& comprimentos);
 };
 
 #endif // SOLUTION_HPP

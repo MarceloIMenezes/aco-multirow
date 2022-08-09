@@ -60,8 +60,9 @@ Graph Graph::readFile(std::istream& file, std::string instanceName)
     while (getline(file, line)) {
         lb = split(line, ' ');
         
-        for (size_t j=0; j<nVertices; j++) {
+        for (size_t j=i; j<nVertices; j++) {
             g.setPesos(i, j, stol(lb.at(j)));
+            g.setPesos(j, i, stol(lb.at(j)));
         }
 
         i++;
@@ -92,6 +93,9 @@ float Graph::evaporacao(size_t id_i, size_t coluna) {
 
 bool Graph::presenteNaCol(size_t id, size_t col, Solution& s) {
     for (size_t i=0; i<s.solucao.size(); ++i) {
+        if (s.solucao.at(i).size() <= col) {
+            break;
+        }
         if (s.solucao[i][col] == id) {
             return true;
         }
@@ -147,9 +151,9 @@ Solution Graph::aco() {
     size_t it = 0;
     size_t nIt = 20;
     while (it < nIt) {
-        std::cout << "\nit: " << it;
+        //std::cout << "\nit: " << it;
         for (size_t ant=0; ant<nAnts; ant++) {
-            std::cout << "\n\tant: " << ant;
+            //std::cout << "\n\tant: " << ant;
             s.at(ant) = Solution(nRows);
 
             std::vector<size_t> facilidades = this->vertices;
@@ -198,6 +202,19 @@ Solution Graph::aco() {
 
         it++;
     }
-
+    best.triangSup(this->pesos, this->comprimentos);
     return best;
+}
+
+void Graph::outFile(std::ostream& file, Solution& s, long seed) {
+    file << "INSTÂNCIA: " << this->instanceName << "\n";
+    file << "SEED: " << seed << "\n";
+    file << "\nCUSTO: " << s.getCost() << "\n";
+    for (size_t row=0; row < s.solucao.size(); row++) {
+        file << "Coluna " << row + 1 << ": ";
+        for (size_t col=0; col<s.solucao.at(row).size(); col++) {
+            file << s.solucao[row][col] << " ";
+        }
+        file << "\n";
+    }
 }

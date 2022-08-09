@@ -38,6 +38,7 @@ public:
     Graph(std::string instanceName, size_t nVertices);
 
     static Graph readFile(std::istream& file, std::string instanceName);
+    void outFile(std::ostream& file, Solution& s, long seed);
     void setComprimento(size_t id, size_t comprimento);
     void setVertice(size_t id, size_t new_id);
     void setPesos(size_t id_i, size_t id_j, size_t peso);
