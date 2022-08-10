@@ -26,17 +26,22 @@ float Solution::distanciaHorizontal(size_t id, size_t row, std::vector<size_t>& 
 }
 
 void Solution::recalcularCusto(matrix_t& pesos, std::vector<size_t>& comprimentos) {
-    float cost = 0;
+    std::vector<float> abscissas;
+    abscissas.resize(comprimentos.size(), 0);
     for (size_t row=0; row<this->nRows; ++row) {
         for (size_t i=0; i<this->solucao.at(row).size(); i++) {
-            float d_i = this->distanciaHorizontal(this->solucao[row][i], row, comprimentos);
-            for (size_t j=i+1; j<this->solucao.at(row).size(); j++) {
-                float d_j = this->distanciaHorizontal(this->solucao[row][j], row, comprimentos);
-                cost += ((float) pesos[this->solucao[row][i]][this->solucao[row][j]]) * std::abs(d_i - d_j);
-            }
+            abscissas.at(this->solucao[row][i]) = this->distanciaHorizontal(this->solucao[row][i], row, comprimentos);
         }
     }
-    this->cost = 2*cost;
+
+    float cost = 0;
+    
+    for (size_t i=0; i<abscissas.size()-1; i++) {
+        for (size_t j=i+1; j<abscissas.size(); j++) {
+            cost += ((float) pesos[i][j]) * std::abs(abscissas.at(i) - abscissas.at(j));
+        }
+    }
+    this->cost = cost;
 }
 
 void Solution::triangSup(matrix_t& pesos, std::vector<size_t>& comprimentos) {

@@ -202,7 +202,7 @@ Solution Graph::aco() {
 
         it++;
     }
-    best.triangSup(this->pesos, this->comprimentos);
+    //best.triangSup(this->pesos, this->comprimentos);
     return best;
 }
 
