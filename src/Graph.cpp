@@ -103,42 +103,41 @@ bool Graph::presenteNaCol(size_t id, size_t col, Solution& s) {
     return false;
 }
 
-float Graph::influenciaSobreSol(size_t id, size_t col, std::vector<Solution>& s) {
+float Graph::influenciaSobreSol(size_t id, size_t col, Solution& s) {
     float influencia = 0;
-    for (size_t i=0; i<s.size(); i++) {
-        influencia += this->presenteNaCol(id, col, s.at(i)) ? 1/s.at(i).getCost() : 0;
-    }
+    //influencia += this->presenteNaCol(id, col, s) ? 0.01*s.getCost() : 0;
+    influencia += this->presenteNaCol(id, col, s) ? 0.07 : 0;
     return influencia;
 }
 
-void Graph::atualizaFeromonios(std::vector<Solution>& s) {
+void Graph::atualizaFeromonios(std::vector<Solution>& s, size_t ant_best) {
     for (size_t id=0; id<this->vertices.size(); id++) {
         for (size_t col=0; col<this->vertices.size(); col++) {
-            this->feromonios[id][col] = this->evaporacao(id, col) + this->influenciaSobreSol(id, col, s);
+            this->feromonios[id][col] = this->evaporacao(id, col) + this->influenciaSobreSol(id, col, s.at(ant_best));
         }
     }
 }
 
-size_t Graph::getFacilidade(std::vector<prob_fac>& prob) {
+size_t Graph::getFacilidade(std::vector<prob_fac>& prob, size_t m) {
     double rng = (double) (rand() % 1000) / 1000;
     float aux = 0;
     float prob_sum = 0;
-    for (size_t i=0; i<prob.size(); i++) {
+    for (size_t i=0; i<m; i++) {
         prob_sum += prob.at(i).prob;
     }
 
-    for (size_t i=0; i<prob.size()-1; i++) {
+    for (size_t i=0; i<m-1; i++) {
         aux += prob.at(i).prob / prob_sum;
         if (rng <= aux) {
             return i;
         }
     }
-    return prob.size()-1;
+    return m-1;
 }
 
 Solution Graph::aco() {
     size_t nRows = 2;
-    size_t nAnts = this->vertices.size();
+    size_t nAnts = this->vertices.size()*2;
     std::vector<Solution> s;
     Solution best = Solution(nRows);
     s.reserve(nAnts);
@@ -149,9 +148,11 @@ Solution Graph::aco() {
     this->initializeInfluencia();
 
     size_t it = 0;
-    size_t nIt = 20;
+    size_t nIt = 50;
     while (it < nIt) {
         //std::cout << "\nit: " << it;
+        size_t best_ants;
+
         for (size_t ant=0; ant<nAnts; ant++) {
             //std::cout << "\n\tant: " << ant;
             s.at(ant) = Solution(nRows);
@@ -164,7 +165,7 @@ Solution Graph::aco() {
 
             while (!facilidades.empty()) {
                 prob.clear();
-                prob.resize(nRows, prob_fac{-1,0});
+                prob.resize(this->vertices.size()*nRows, prob_fac{-1,0,0});
                 
                 for (size_t linha = 0; linha < nRows; linha++) {
                     for (size_t id_f = 0; id_f < facilidades.size(); id_f++) {
@@ -175,18 +176,17 @@ Solution Graph::aco() {
                             influencia_aux = 1/(this->influencia.at(facilidades.at(id_f)) + this->pesos[facilidades.at(id_f)][s.at(ant).solucao[linha][colunas.at(linha)-1]]);
                         }
                         float p = this->getProbabilidade(facilidades.at(id_f), colunas.at(linha), influencia_aux);
-                        if (p > prob.at(linha).prob) {
-                            prob.at(linha).id = facilidades.at(id_f);
-                            prob.at(linha).prob = p;
-                        }
+                        prob.at(id_f*nRows+linha).id = facilidades.at(id_f);
+                        prob.at(id_f*nRows+linha).prob = p;
+                        prob.at(id_f*nRows+linha).linha = linha;
                     }
                 }
 
-                size_t linha_insert = this->getFacilidade(prob);
-                s.at(ant).solucao[linha_insert].push_back(prob.at(linha_insert).id);
-                colunas.at(linha_insert) += 1;
+                size_t prob_pos = this->getFacilidade(prob, facilidades.size()*2);
+                s.at(ant).solucao[prob.at(prob_pos).linha].push_back(prob.at(prob_pos).id);
+                colunas.at(prob.at(prob_pos).linha) += 1;
                 for (size_t iter = 0; iter<facilidades.size(); ++iter) {
-                    if (facilidades.at(iter) == prob.at(linha_insert).id) {
+                    if (facilidades.at(iter) == prob.at(prob_pos).id) {
                         facilidades.erase(facilidades.begin() + iter);
                         break;
                     }
@@ -194,11 +194,13 @@ Solution Graph::aco() {
 
             }
             s.at(ant).recalcularCusto(this->pesos, this->comprimentos);
+
             if (best.getCost() == 0 || best.getCost() > s.at(ant).getCost()) {
                 best = s.at(ant);
+                best_ants = ant;  
             }
         }
-        this->atualizaFeromonios(s);
+        this->atualizaFeromonios(s, best_ants);
 
         it++;
     }

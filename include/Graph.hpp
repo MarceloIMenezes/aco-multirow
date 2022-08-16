@@ -4,6 +4,7 @@
 #include "utils.hpp"
 #include "Solution.hpp"
 #include <vector>
+#include <list>
 #include <string>
 #include <iostream>
 
@@ -23,6 +24,7 @@ private:
     struct prob_fac {
         float prob;
         size_t id;
+        size_t linha;
     };
 
     void initializeInfluencia();
@@ -30,9 +32,9 @@ private:
     bool presenteNaCol(size_t id, size_t col, Solution& s);
     float getProbabilidade(size_t id_i, size_t coluna, float influencia);
     float evaporacao(size_t id_i, size_t coluna);
-    float influenciaSobreSol(size_t id, size_t col, std::vector<Solution>& s);
-    void atualizaFeromonios(std::vector<Solution>& s);
-    size_t getFacilidade(std::vector<prob_fac>& prob);
+    float influenciaSobreSol(size_t id, size_t col, Solution& s);
+    void atualizaFeromonios(std::vector<Solution>& s, size_t ant_best);
+    size_t getFacilidade(std::vector<prob_fac>& prob, size_t m);
 public:
 
     Graph(std::string instanceName, size_t nVertices);
